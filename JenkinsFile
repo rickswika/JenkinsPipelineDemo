@@ -1,0 +1,71 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Select Target Environment') {
+            steps {
+                script {
+                    // Prompt the user to select the target environment
+                    def targetEnv = input(
+                        message: 'Select the target environment for deployment:',
+                        parameters: [
+                            choice(name: 'Environment', choices: ['DEV', 'STG', 'PRD'], description: 'Choose the target environment')
+                        ]
+                    )
+                    echo "User selected environment: ${targetEnv}"
+
+                    // Store the selected environment for later use
+                    env.SELECTED_ENV = targetEnv
+                }
+            }
+        }
+
+        stage('Set Environment-Specific Variables') {
+            steps {
+                script {
+                    // Use a switch case to assign environment-specific variables
+                    switch (env.SELECTED_ENV) {
+                        case 'DEV':
+                            env.SERVER_IP = '192.168.1.10'
+                            env.CREDENTIALS_ID = 'dev-credentials'
+                            env.DATABASE_NAME = 'dev_db'
+                            break
+
+                        case 'STG':
+                            env.SERVER_IP = '192.168.1.20'
+                            env.CREDENTIALS_ID = 'stg-credentials'
+                            env.DATABASE_NAME = 'stg_db'
+                            break
+
+                        case 'PRD':
+                            env.SERVER_IP = '192.168.1.30'
+                            env.CREDENTIALS_ID = 'prd-credentials'
+                            env.DATABASE_NAME = 'prd_db'
+                            break
+
+                        default:
+                            error "Unknown environment: ${env.SELECTED_ENV}"
+                    }
+
+                    // Output the selected environment variables for verification
+                    echo "Environment: ${env.SELECTED_ENV}"
+                    echo "Server IP: ${env.SERVER_IP}"
+                    echo "Credentials ID: ${env.CREDENTIALS_ID}"
+                    echo "Database: ${env.DATABASE_NAME}"
+                }
+            }
+        }
+
+        stage('Deploy to Selected Environment') {
+            steps {
+                script {
+                    // Use the environment-specific variables in the deployment process
+                    echo "Deploying to ${env.SELECTED_ENV} environment"
+                    echo "Using Server IP: ${env.SERVER_IP}"
+                    echo "Using Credentials ID: ${env.CREDENTIALS_ID}"
+
+                }
+            }
+        }
+    }
+}
